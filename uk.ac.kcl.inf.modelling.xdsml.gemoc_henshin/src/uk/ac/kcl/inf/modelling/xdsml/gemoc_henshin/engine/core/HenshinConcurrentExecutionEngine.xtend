@@ -57,11 +57,11 @@ class HenshinConcurrentExecutionEngine extends AbstractExecutionEngine<IConcurre
 	var List<Step<?>> _possibleLogicalSteps = new ArrayList()
 	var ILogicalStepDecider _logicalStepDecider
 
-	new(IConcurrentExecutionContext concurrentexecutionContext) {
+	new(IConcurrentExecutionContext concurrentexecutionContext, HenshinSolver s) {
 		super();
 		initialize(concurrentexecutionContext);
 		_logicalStepDecider = concurrentexecutionContext.getLogicalStepDecider()
-		//_solver = s
+		_solver = s
 		// Use non-deterministic matching for now to ensure we get a random trace rather than always the same one
 		henshinEngine.options.put(Engine.OPTION_DETERMINISTIC, false)
 	}
@@ -117,6 +117,7 @@ class HenshinConcurrentExecutionEngine extends AbstractExecutionEngine<IConcurre
 			semanticRules = semantics.units.filter(Rule).toList
 			
 		}
+		_solver.configure(modelGraph, henshinEngine, semanticRules)
 	}
 
 	private static class RuleApplicationException extends Exception {
@@ -141,39 +142,6 @@ class HenshinConcurrentExecutionEngine extends AbstractExecutionEngine<IConcurre
 			}
 		}
 	}
-
-	/**
-	 * Perform a single step of model execution
-	 */
-//	private def performStep() {
-//		//val match = pickNextMatch
-//
-//		if (match !== null) {
-//			var result = true
-//
-//			val command = new StepCommand(editingDomain, _selectedLogicalStep.match , ruleRunner, modelGraph)
-//			// We're faking the class and operation names so that GEMOC can do its step tracing even though we're not actually calling operations 
-//			val target = _selectedLogicalStep.match.mainObject
-//			beforeExecutionStep(_selectedLogicalStep)
-//
-//			if (command.canExecute) {
-//				try {
-//					command.execute
-//				} catch (RuleApplicationException rae) {
-//					editingDomain.activeTransaction.abort(
-//						new Status(IStatus.OK,
-//							Activator.PLUGIN_ID, '''Error executing semantic rule «_selectedLogicalStep.match.rule.name».'''))
-//					result = false
-//				}
-//			}
-//
-//			afterExecutionStep
-//
-//			result
-//		} else {
-//			false
-//		}
-//	}
 
 	/**
 	 * The object to be used as the fake target when executing this match
@@ -287,7 +255,6 @@ class HenshinConcurrentExecutionEngine extends AbstractExecutionEngine<IConcurre
 	}
 	
 	override getPossibleLogicalSteps() {
-		debug(_possibleLogicalSteps.toString())
 		return _possibleLogicalSteps
 	}
 	
@@ -366,21 +333,21 @@ class HenshinConcurrentExecutionEngine extends AbstractExecutionEngine<IConcurre
 	
 	override computePossibleLogicalSteps() {
 		//HERE USE HENSHIN TO CALCULATE STEPS
-		var applicableRules = semanticRules.filter[r|r.checkParamters].toList
-		_possibleLogicalSteps = new ArrayList()
-
-		while (!applicableRules.empty) {
-			val tentativeStepRule = applicableRules.remove(rnd.nextInt(applicableRules.size))
-			val match = henshinEngine.findMatches(tentativeStepRule, modelGraph, null)
-						
-			for(Match m: match){
-				val step = new HenshinStep(m,tentativeStepRule)
-				_possibleLogicalSteps.add(step)
-				debug(step.toString())
-			}
-					
-		}
-		//_possibleLogicalSteps = getSolver().computeAndGetPossibleLogicalSteps();
+//		var applicableRules = semanticRules.filter[r|r.checkParamters].toList
+//		_possibleLogicalSteps = new ArrayList()
+//
+//		while (!applicableRules.empty) {
+//			val tentativeStepRule = applicableRules.remove(rnd.nextInt(applicableRules.size))
+//			val match = henshinEngine.findMatches(tentativeStepRule, modelGraph, null)
+//						
+//			for(Match m: match){
+//				val step = new HenshinStep(m,tentativeStepRule)
+//				_possibleLogicalSteps.add(step)
+//				debug(step.toString())
+//			}
+//					
+//		}
+		_possibleLogicalSteps = getSolver().computeAndGetPossibleLogicalSteps();
 	
 	}
 	
@@ -404,7 +371,6 @@ class HenshinConcurrentExecutionEngine extends AbstractExecutionEngine<IConcurre
 			// + count);
 			val selectedLogicalStep = selectAndExecuteLogicalStep();
 			debug("executed")
-			debug(modelGraph.toString())
 			// 3 - run the selected logical step
 			// inform the solver that we will run this step
 			if (selectedLogicalStep != null) {

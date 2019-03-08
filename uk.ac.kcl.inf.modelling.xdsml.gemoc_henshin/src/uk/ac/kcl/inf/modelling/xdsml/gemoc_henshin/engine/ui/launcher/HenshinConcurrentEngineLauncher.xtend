@@ -77,13 +77,9 @@ class HenshinConcurrentEngineLauncher extends AbstractGemocLauncher<IConcurrentE
 					ViewHelper.showView(LogicalStepsView.ID);
 				}
 			});
-			debug("aaaa22222222About to initialize and run the GEMOC Henshin Execution Engine...");
-			debug("CHECKCHECK22222222About to initialize and run the GEMOC Henshin Execution Engine...");
 
 			// We parse the run configuration
 			var ConcurrentRunConfiguration runConfiguration = new ConcurrentRunConfiguration(configuration);
-			debug("3333333About to initialize and run the GEMOC Henshin Execution Engine...");
-			debug("aaaa3333333About to initialize and run the GEMOC Henshin Execution Engine...");
 
 			// We detect if we are running in debug mode or not
 			var ExecutionMode executionMode = null;
@@ -92,36 +88,28 @@ class HenshinConcurrentEngineLauncher extends AbstractGemocLauncher<IConcurrentE
 			} else {
 				executionMode = ExecutionMode.Run;
 			}
-			debug("444444444About to initialize and run the GEMOC Henshin Execution Engine..."); 
 
 			// We stop the launch if an engine is already running for this model
 			if (isEngineAlreadyRunning(runConfiguration.getExecutedModelURI())) {
 				return;
 			}
 			
-			debug("5555555About to initialize and run the GEMOC Henshin Execution Engine...");
 			var HenshinConcurrentModelExecutionContext concurrentexecutionContext = new HenshinConcurrentModelExecutionContext(
 					runConfiguration, executionMode);
-				debug("CHECKCHECK22222222About to initialize and run the GEMOC Henshin Execution Engine...");
 					 
-				concurrentexecutionContext.initializeResourceModel();
-//				concurrentexecutionContext.initializeResourceModel();
+			concurrentexecutionContext.initializeResourceModel();
 					
 			
-			debug("66666About to initialize and run the GEMOC Henshin Execution Engine...");
-	
-			debug("77777About to initialize and run the GEMOC Henshin Execution Engine...");
-			
-//			var HenshinSolver _solver
-//			try {
-//				_solver = concurrentexecutionContext.getLanguageDefinitionExtension().instanciateSolver() as HenshinSolver;
-//				//_solver.initialize(concurrentexecutionContext);
-//			} catch (CoreException e) {
-//				throw new CoreException(new Status(Status.ERROR, Activator.PLUGIN_ID,
-//						"Cannot instanciate solver from language definition", e));
-//			}
+			var HenshinSolver _solver
+			try {
+				_solver = concurrentexecutionContext.getLanguageDefinitionExtension().instanciateSolver() as HenshinSolver;
+				//_solver.initialize(concurrentexecutionContext);
+			} catch (CoreException e) {
+				throw new CoreException(new Status(Status.ERROR, Activator.PLUGIN_ID,
+						"Cannot instanciate solver from language definition", e));
+			}
 
-			_executionEngine = new HenshinConcurrentExecutionEngine(concurrentexecutionContext);
+			_executionEngine = new HenshinConcurrentExecutionEngine(concurrentexecutionContext, _solver);
 
 			openViewsRecommandedByAddons(runConfiguration);
 
